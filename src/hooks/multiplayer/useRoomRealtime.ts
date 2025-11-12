@@ -148,21 +148,10 @@ export const useRoomRealtime = (roomId: string | null): UseRoomRealtimeReturn =>
         played_at: s.played_at,
       }));
       
-      // 데이터가 실제로 변경되었을 때만 상태 업데이트 (불필요한 리렌더링 방지)
-      setGameSessions(prev => {
-        // userId와 score 기준으로 해시 생성 (점수 변경 감지)
-        const prevHash = JSON.stringify(prev.map(s => ({ userId: s.user_id, score: s.score })).sort((a, b) => a.userId.localeCompare(b.userId)));
-        const newHash = JSON.stringify(sessions.map(s => ({ userId: s.user_id, score: s.score })).sort((a, b) => a.userId.localeCompare(b.userId)));
-        
-        if (prevHash !== newHash) {
-          console.log('[useRoomRealtime] 게임 세션 로드 완료:', sessions.length, '개 (변경 감지)');
-          console.log('[useRoomRealtime] 세션 점수:', sessions.map(s => ({ userId: s.user_id, score: s.score, nickname: s.user?.nickname })));
-          return sessions;
-        } else {
-          console.log('[useRoomRealtime] 게임 세션 변경 없음, 업데이트 스킵');
-          return prev;
-        }
-      });
+      // 항상 업데이트 (점수 동기화를 위해)
+      console.log('[useRoomRealtime] 게임 세션 로드 완료:', sessions.length, '개');
+      console.log('[useRoomRealtime] 세션 점수:', sessions.map(s => ({ userId: s.user_id, score: s.score, nickname: s.user?.nickname })));
+      setGameSessions(sessions);
     } else if (error) {
       console.error('[useRoomRealtime] 게임 세션 로드 실패:', error);
     }
@@ -474,12 +463,12 @@ export const useRoomRealtime = (roomId: string | null): UseRoomRealtimeReturn =>
         await refreshParticipants();
       }, 3000);
 
-      // 게임 세션 2초마다 자동 갱신 (실시간 점수 동기화) - 주기 단축으로 실시간성 향상
-      console.log('[useRoomRealtime] 게임 세션 자동 갱신 시작 (2초 간격)');
+      // 게임 세션 1초마다 자동 갱신 (실시간 점수 동기화) - 주기 단축으로 실시간성 향상
+      console.log('[useRoomRealtime] 게임 세션 자동 갱신 시작 (1초 간격)');
       sessionsRefreshInterval = setInterval(async () => {
         console.log('[useRoomRealtime] 자동 갱신: 게임 세션 새로고침');
         await loadGameSessions();
-      }, 2000);
+      }, 1000);
 
       // 방 존재 여부 및 상태 2초마다 확인 (방 삭제 감지 및 상태 동기화)
       console.log('[useRoomRealtime] 방 존재 여부 및 상태 확인 시작 (2초 간격)');
