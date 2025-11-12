@@ -150,11 +150,13 @@ export const useRoomRealtime = (roomId: string | null): UseRoomRealtimeReturn =>
       
       // 데이터가 실제로 변경되었을 때만 상태 업데이트 (불필요한 리렌더링 방지)
       setGameSessions(prev => {
-        const prevHash = JSON.stringify(prev.map(s => ({ id: s.id, score: s.score })).sort((a, b) => a.id.localeCompare(b.id)));
-        const newHash = JSON.stringify(sessions.map(s => ({ id: s.id, score: s.score })).sort((a, b) => a.id.localeCompare(b.id)));
+        // userId와 score 기준으로 해시 생성 (점수 변경 감지)
+        const prevHash = JSON.stringify(prev.map(s => ({ userId: s.user_id, score: s.score })).sort((a, b) => a.userId.localeCompare(b.userId)));
+        const newHash = JSON.stringify(sessions.map(s => ({ userId: s.user_id, score: s.score })).sort((a, b) => a.userId.localeCompare(b.userId)));
         
         if (prevHash !== newHash) {
           console.log('[useRoomRealtime] 게임 세션 로드 완료:', sessions.length, '개 (변경 감지)');
+          console.log('[useRoomRealtime] 세션 점수:', sessions.map(s => ({ userId: s.user_id, score: s.score, nickname: s.user?.nickname })));
           return sessions;
         } else {
           console.log('[useRoomRealtime] 게임 세션 변경 없음, 업데이트 스킵');
